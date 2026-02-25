@@ -1,10 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { LanguageToggle } from "@/components/language-toggle"
 import { api } from "@/lib/api-client"
+import { mockSignOut } from "@/lib/mock-auth"
+import { useAuth } from "@/lib/use-auth"
 import {
   config,
   jobTitles,
@@ -24,7 +27,21 @@ import {
 type Step = 'input' | 'recommend' | 'generating' | 'result'
 
 export default function GeneratePage() {
+  const router = useRouter()
+  const { isChecking: isAuthChecking } = useAuth()
   const [step, setStep] = useState<Step>('input')
+
+  // 如果正在检查认证状态，显示加载
+  if (isAuthChecking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-t-foreground/20 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    )
+  }
 
   // Step 1: 基础信息字段
   const [jobTitle, setJobTitle] = useState<JobTitle>(JobTitle.CEO_FOUNDER)
@@ -207,6 +224,11 @@ export default function GeneratePage() {
     setError('')
   }
 
+  const handleSignOut = () => {
+    mockSignOut()
+    router.push('/')
+  }
+
   const downloadImage = async (url: string, e?: React.MouseEvent<HTMLButtonElement>) => {
     try {
       const button = e?.target as HTMLButtonElement
@@ -278,6 +300,12 @@ export default function GeneratePage() {
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                 <span className="text-sm font-medium">JD</span>
               </div>
+              <button
+                onClick={handleSignOut}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Sign out
+              </button>
             </div>
           </div>
         </div>

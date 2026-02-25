@@ -5,32 +5,46 @@ import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { mockSignIn } from "@/lib/mock-auth"
+import { useAuth } from "@/lib/use-auth"
 
 export default function LoginPage() {
   const router = useRouter()
+  const { isChecking: isAuthChecking } = useAuth()
+
+  // 如果正在检查认证状态，显示加载
+  if (isAuthChecking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-t-foreground/20 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    )
+  }
 
   const handleGoogleSignIn = async () => {
     try {
-      await signIn("google", { callbackUrl: "/dashboard" })
+      await signIn("google", { callbackUrl: "/generate" })
     } catch (error) {
       console.error("Google sign-in error:", error)
       // 如果 Google OAuth 失败，使用模拟登录
       mockSignIn()
-      router.push("/dashboard")
+      router.push("/generate")
     }
   }
 
   const handleMockSignIn = () => {
     // 直接使用模拟登录
     mockSignIn()
-    router.push("/dashboard")
+    router.push("/generate")
   }
 
   const handleEmailSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     // 使用模拟登录
     mockSignIn()
-    router.push("/dashboard")
+    router.push("/generate")
   }
 
   return (

@@ -11,12 +11,21 @@ export function mockSignIn() {
   localStorage.setItem("avery-user", JSON.stringify(mockUser))
   localStorage.setItem("avery-authenticated", "true")
 
+  // 同时设置 cookie，供 middleware 使用
+  // 设置 7 天过期
+  const expires = new Date()
+  expires.setDate(expires.getDate() + 7)
+  document.cookie = `avery-authenticated=true; expires=${expires.toUTCString()}; path=/`
+
   return mockUser
 }
 
 export function mockSignOut() {
   localStorage.removeItem("avery-user")
   localStorage.removeItem("avery-authenticated")
+
+  // 清除 cookie
+  document.cookie = "avery-authenticated=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/"
 }
 
 export function getMockUser() {

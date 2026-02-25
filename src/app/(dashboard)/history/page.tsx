@@ -6,12 +6,27 @@ import { useRouter } from "next/navigation"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { LanguageToggle } from "@/components/language-toggle"
 import { api } from "@/lib/api-client"
+import { mockSignOut } from "@/lib/mock-auth"
+import { useAuth } from "@/lib/use-auth"
 
 export default function HistoryPage() {
   const [history, setHistory] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [regeneratingId, setRegeneratingId] = useState<string | null>(null)
   const router = useRouter()
+  const { isChecking: isAuthChecking } = useAuth()
+
+  // 如果正在检查认证状态，显示加载
+  if (isAuthChecking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-t-foreground/20 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    )
+  }
 
   useEffect(() => {
     loadHistory()
@@ -68,6 +83,11 @@ export default function HistoryPage() {
     }
   }
 
+  const handleSignOut = () => {
+    mockSignOut()
+    router.push('/')
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
@@ -93,6 +113,12 @@ export default function HistoryPage() {
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                 <span className="text-sm font-medium">JD</span>
               </div>
+              <button
+                onClick={handleSignOut}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Sign out
+              </button>
             </div>
           </div>
         </div>
