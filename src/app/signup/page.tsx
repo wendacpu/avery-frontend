@@ -11,26 +11,27 @@ export default function SignUpPage() {
 
   const handleGoogleSignIn = async () => {
     try {
-      await signIn("google", { callbackUrl: "/dashboard" })
+      // 使用 NextAuth Google 登录
+      await signIn("google", { callbackUrl: "/generate" })
     } catch (error) {
       console.error("Google sign-in error:", error)
       // 如果 Google OAuth 失败，使用模拟登录
       mockSignIn()
-      router.push("/dashboard")
+      router.push("/generate")
     }
   }
 
   const handleMockSignIn = () => {
     // 直接使用模拟登录
     mockSignIn()
-    router.push("/dashboard")
+    router.push("/generate")
   }
 
   const handleEmailSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     // 使用模拟登录
     mockSignIn()
-    router.push("/dashboard")
+    router.push("/generate")
   }
 
   return (

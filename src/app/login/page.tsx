@@ -11,7 +11,9 @@ export default function LoginPage() {
   const router = useRouter()
   const { isChecking: isAuthChecking } = useAuth()
 
-  // 如果正在检查认证状态，显示加载
+  // 在所有 hooks 之后才进行条件渲染
+  // 注意：login 页面实际上不需要显示 loading，因为 useAuth 会自动重定向
+  // 这里保留是为了保持一致性，但通常可以移除
   if (isAuthChecking) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -25,6 +27,7 @@ export default function LoginPage() {
 
   const handleGoogleSignIn = async () => {
     try {
+      // 使用 NextAuth Google 登录
       await signIn("google", { callbackUrl: "/generate" })
     } catch (error) {
       console.error("Google sign-in error:", error)

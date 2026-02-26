@@ -54,6 +54,7 @@ export interface ContentGenerationRequest {
   output_format: OutputFormat;  // 输出格式（必选）
   selected_topic: string;       // 用户选择或手动输入的主题
   additional_context?: string;  // 额外补充信息（可选）
+  language?: string;            // 语言：en=英文, zh=中文，默认英文
 }
 
 // 内容生成响应

@@ -1,43 +1,23 @@
 /**
  * 认证 Hook - 用于客户端路由保护
+ * 只检查 NextAuth session，不检查 mock auth
+ * Mock auth 只作为登录失败时的开发环境 fallback
  */
 
-import { useEffect, useState } from 'react'
-import { useRouter, usePathname } from 'next/navigation'
-import { isMockAuthenticated } from './mock-auth'
-
-// 需要认证的路由
-const PROTECTED_ROUTES = ['/generate', '/history']
-
-// 公开路由（已登录用户不应该访问）
-const PUBLIC_ROUTES = ['/login', '/signup']
+import { useSession } from 'next-auth/react'
 
 export function useAuth() {
-  const router = useRouter()
-  const pathname = usePathname()
-  const [isChecking, setIsChecking] = useState(true)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const { data: session, status } = useSession()
 
-  useEffect(() => {
-    // 检查登录状态
-    const authenticated = isMockAuthenticated()
-    setIsAuthenticated(authenticated)
-    setIsChecking(false)
+  // 认证状态：只使用 NextAuth session
+  const isAuthenticated = !!session
 
-    // 如果访问受保护路由但未登录，重定向到登录页
-    if (PROTECTED_ROUTES.some(route => pathname.startsWith(route))) {
-      if (!authenticated) {
-        router.push(`/login?callbackUrl=${encodeURIComponent(pathname)}`)
-      }
-    }
+  // 加载状态：NextAuth 正在加载时返回 true
+  const isChecking = status === 'loading'
 
-    // 如果已登录用户访问公开路由，重定向到 generate 页面
-    if (PUBLIC_ROUTES.some(route => pathname.startsWith(route))) {
-      if (authenticated) {
-        router.push('/generate')
-      }
-    }
-  }, [pathname, router])
-
-  return { isAuthenticated, isChecking }
+  return {
+    isAuthenticated,
+    isChecking,
+    session, // NextAuth session
+  }
 }

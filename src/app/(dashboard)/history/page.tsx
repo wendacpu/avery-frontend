@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { signOut } from "next-auth/react"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { LanguageToggle } from "@/components/language-toggle"
 import { api } from "@/lib/api-client"
@@ -10,13 +11,14 @@ import { mockSignOut } from "@/lib/mock-auth"
 import { useAuth } from "@/lib/use-auth"
 
 export default function HistoryPage() {
+  // 所有 hooks 必须在条件判断之前调用
+  const router = useRouter()
+  const { isChecking: isAuthChecking } = useAuth()
   const [history, setHistory] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [regeneratingId, setRegeneratingId] = useState<string | null>(null)
-  const router = useRouter()
-  const { isChecking: isAuthChecking } = useAuth()
 
-  // 如果正在检查认证状态，显示加载
+  // 在所有 hooks 之后才进行条件渲染
   if (isAuthChecking) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -83,8 +85,15 @@ export default function HistoryPage() {
     }
   }
 
-  const handleSignOut = () => {
-    mockSignOut()
+  const handleSignOut = async () => {
+    // 优先使用 NextAuth 登出，如果失败则使用 mock 登出
+    try {
+      await signOut({ redirect: false })
+    } catch (error) {
+      console.error("NextAuth sign out error:", error)
+      // Fallback to mock sign out
+      mockSignOut()
+    }
     router.push('/')
   }
 

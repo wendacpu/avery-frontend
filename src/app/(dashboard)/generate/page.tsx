@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { signOut } from "next-auth/react"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { LanguageToggle } from "@/components/language-toggle"
 import { api } from "@/lib/api-client"
@@ -29,19 +30,9 @@ type Step = 'input' | 'recommend' | 'generating' | 'result'
 export default function GeneratePage() {
   const router = useRouter()
   const { isChecking: isAuthChecking } = useAuth()
-  const [step, setStep] = useState<Step>('input')
 
-  // 如果正在检查认证状态，显示加载
-  if (isAuthChecking) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-t-foreground/20 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    )
-  }
+  // 所有 hooks 必须在条件判断之前调用
+  const [step, setStep] = useState<Step>('input')
 
   // Step 1: 基础信息字段
   const [jobTitle, setJobTitle] = useState<JobTitle>(JobTitle.CEO_FOUNDER)
@@ -79,10 +70,22 @@ export default function GeneratePage() {
   const [targetAudience, setTargetAudience] = useState("")
   const [error, setError] = useState("")
 
+  // 在所有 hooks 之后才进行条件渲染
+  if (isAuthChecking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-t-foreground/20 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
   // Step 1 → Step 2: 提取数据和推荐主题
   const handleExtractAndRecommend = async () => {
     if (!linkedinUrl.trim()) {
-      setError("请输入LinkedIn URL")
+      setError("Please enter LinkedIn URL")
       return
     }
 
@@ -98,6 +101,7 @@ export default function GeneratePage() {
         content_quality: contentQuality,
         output_format: outputFormat,
         selected_topic: "",  // 临时空值
+        language: "en",  // 默认使用英文
       })
 
       setExtractedData({
@@ -109,7 +113,7 @@ export default function GeneratePage() {
       setStep('recommend')
     } catch (err: any) {
       console.error('Extract error:', err)
-      setError(err.message || "数据提取失败，请检查LinkedIn URL是否正确")
+      setError(err.message || "Failed to extract data. Please check if the LinkedIn URL is correct")
     } finally {
       setIsExtracting(false)
     }
@@ -120,7 +124,7 @@ export default function GeneratePage() {
     const finalTopic = customTopic || selectedTopic
 
     if (!finalTopic.trim()) {
-      setError("请选择或输入主题")
+      setError("Please select or enter a topic")
       return
     }
 
@@ -150,6 +154,7 @@ export default function GeneratePage() {
         output_format: outputFormat,
         selected_topic: finalTopic,
         additional_context: additionalContext || undefined,
+        language: "en",  // 默认使用英文
       })
 
       if (response.id) {
@@ -171,7 +176,7 @@ export default function GeneratePage() {
               setStep('result')
             } else if (content.status === 'failed') {
               clearInterval(checkProgress)
-              setError("生成失败，请重试")
+              setError("Generation failed. Please try again")
               setIsGenerating(false)
               setStep('input')
             } else {
@@ -197,7 +202,7 @@ export default function GeneratePage() {
       }
     } catch (err: any) {
       console.error("Generation error:", err)
-      setError(err.message || "生成失败")
+      setError(err.message || "Generation failed")
       setIsGenerating(false)
       setStep('input')
     }
@@ -224,8 +229,15 @@ export default function GeneratePage() {
     setError('')
   }
 
-  const handleSignOut = () => {
-    mockSignOut()
+  const handleSignOut = async () => {
+    // 优先使用 NextAuth 登出，如果失败则使用 mock 登出
+    try {
+      await signOut({ redirect: false })
+    } catch (error) {
+      console.error("NextAuth sign out error:", error)
+      // Fallback to mock sign out
+      mockSignOut()
+    }
     router.push('/')
   }
 
@@ -319,21 +331,21 @@ export default function GeneratePage() {
               <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${step === 'input' || ['recommend', 'generating', 'result'].includes(step) ? 'border-primary bg-primary text-primary-foreground' : 'border-muted'}`}>
                 1
               </div>
-              <span className="ml-2">基础信息</span>
+              <span className="ml-2">Basic Info</span>
             </div>
             <div className={`flex-1 h-0.5 mx-4 ${['recommend', 'generating', 'result'].includes(step) ? 'bg-primary' : 'bg-muted'}`}></div>
             <div className={`flex items-center ${['recommend', 'generating', 'result'].includes(step) ? 'text-primary' : 'text-muted-foreground'}`}>
               <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${['generating', 'result'].includes(step) ? 'border-primary bg-primary text-primary-foreground' : 'border-muted'}`}>
                 2
               </div>
-              <span className="ml-2">推荐主题</span>
+              <span className="ml-2">Topics</span>
             </div>
             <div className={`flex-1 h-0.5 mx-4 ${['generating', 'result'].includes(step) ? 'bg-primary' : 'bg-muted'}`}></div>
             <div className={`flex items-center ${['generating', 'result'].includes(step) ? 'text-primary' : 'text-muted-foreground'}`}>
               <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${step === 'result' ? 'border-primary bg-primary text-primary-foreground' : 'border-muted'}`}>
                 3
               </div>
-              <span className="ml-2">生成</span>
+              <span className="ml-2">Generate</span>
             </div>
           </div>
         </div>
@@ -349,16 +361,16 @@ export default function GeneratePage() {
         {step === 'input' && (
           <div className="space-y-6">
             <div>
-              <h1 className="text-3xl font-bold mb-2">创建内容</h1>
+              <h1 className="text-3xl font-bold mb-2">Create Content</h1>
               <p className="text-muted-foreground">
-                告诉我们您的职位和LinkedIn信息，AI会帮您生成优质内容
+                Tell us your role and LinkedIn information, and AI will help you generate high-quality content
               </p>
             </div>
 
-            {/* 职位选择 */}
+            {/* Job Title Selection */}
             <div>
               <label className="block text-sm font-medium mb-3">
-                您的职位 *
+                Your Role *
               </label>
               <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                 {jobTitles.map((job) => {
@@ -405,10 +417,10 @@ export default function GeneratePage() {
               />
             </div>
 
-            {/* 公司网站 URL（可选） */}
+            {/* Company Website URL (Optional) */}
             <div>
               <label className="block text-sm font-medium mb-2">
-                公司网站 URL <span className="text-muted-foreground font-normal">(可选)</span>
+                Company Website URL <span className="text-muted-foreground font-normal">(optional)</span>
               </label>
               <input
                 type="url"
@@ -419,10 +431,10 @@ export default function GeneratePage() {
               />
             </div>
 
-            {/* 内容质量 */}
+            {/* Content Quality */}
             <div>
               <label className="block text-sm font-medium mb-3">
-                内容质量 *
+                Content Quality *
               </label>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {contentQualities.map((quality) => {
@@ -458,53 +470,53 @@ export default function GeneratePage() {
               </div>
             </div>
 
-            {/* 提取按钮 */}
+            {/* Extract Button */}
             <button
               onClick={handleExtractAndRecommend}
               disabled={!linkedinUrl.trim() || isExtracting}
               className="w-full bg-foreground text-background px-6 py-4 rounded-lg text-base font-medium hover:bg-foreground/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isExtracting ? '分析中...' : '下一步：推荐主题'}
+              {isExtracting ? 'Analyzing...' : 'Next: Recommended Topics'}
             </button>
           </div>
         )}
 
-        {/* Step 2: 推荐主题和输出格式 */}
+        {/* Step 2: Recommended Topics and Output Format */}
         {step === 'recommend' && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold mb-2">推荐主题</h2>
+              <h2 className="text-2xl font-bold mb-2">Recommended Topics</h2>
               <p className="text-muted-foreground">
-                基于您的职位和LinkedIn资料，AI为您推荐以下主题
+                Based on your role and LinkedIn profile, AI recommends the following topics
               </p>
             </div>
 
-            {/* 提取的数据展示 */}
+            {/* Extracted Data Display */}
             {(extractedData.linkedinProfile || extractedData.companyInfo) && (
               <div className="p-4 rounded-lg border bg-card">
-                <h3 className="font-medium mb-2">已提取的信息</h3>
+                <h3 className="font-medium mb-2">Extracted Information</h3>
                 {extractedData.linkedinProfile && (
                   <div className="mb-2 text-sm">
-                    <span className="font-medium">姓名：</span>{extractedData.linkedinProfile.name}
-                    <span className="ml-4 font-medium">职位：</span>{extractedData.linkedinProfile.title}
+                    <span className="font-medium">Name: </span>{extractedData.linkedinProfile.name}
+                    <span className="ml-4 font-medium">Title: </span>{extractedData.linkedinProfile.title}
                     {extractedData.linkedinProfile.company && (
-                      <span className="ml-4 font-medium">公司：</span>
+                      <span className="ml-4 font-medium">Company: </span>
                     )}
                     {extractedData.linkedinProfile.company}
                   </div>
                 )}
                 {extractedData.companyInfo && (
                   <div className="text-sm">
-                    <span className="font-medium">公司：</span>{extractedData.companyInfo.name}
+                    <span className="font-medium">Company: </span>{extractedData.companyInfo.name}
                   </div>
                 )}
               </div>
             )}
 
-            {/* 主题推荐 */}
+            {/* Topic Recommendations */}
             <div>
               <label className="block text-sm font-medium mb-3">
-                选择一个主题，或手动输入
+                Select a topic or enter manually
               </label>
               <div className="space-y-3 mb-4">
                 {topicRecommendations.map((rec, index) => (
@@ -533,7 +545,7 @@ export default function GeneratePage() {
                       <div className="ml-2 flex items-center space-x-2">
                         {rec.estimated_engagement && (
                           <span className="text-xs px-2 py-1 rounded bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">
-                            预估互动: {rec.estimated_engagement}
+                            Est. Engagement: {rec.estimated_engagement}
                           </span>
                         )}
                         {selectedTopic === rec.topic && !customTopic && (
@@ -549,14 +561,14 @@ export default function GeneratePage() {
                 ))}
               </div>
 
-              {/* 手动输入主题 */}
+              {/* Manual Topic Input */}
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  或手动输入主题
+                  Or enter topic manually
                 </label>
                 <input
                   type="text"
-                  placeholder="例如：如何建立高效的远程团队"
+                  placeholder="e.g., How to build an efficient remote team"
                   value={customTopic}
                   onChange={(e) => {
                     setCustomTopic(e.target.value)
@@ -567,10 +579,10 @@ export default function GeneratePage() {
               </div>
             </div>
 
-            {/* 输出格式 */}
+            {/* Output Format */}
             <div>
               <label className="block text-sm font-medium mb-3">
-                输出格式 *
+                Output Format *
               </label>
               <div className="grid grid-cols-2 gap-4">
                 {outputFormats.map((format) => {
@@ -606,13 +618,13 @@ export default function GeneratePage() {
               </div>
             </div>
 
-            {/* 额外补充信息 */}
+            {/* Additional Context */}
             <div>
               <label className="block text-sm font-medium mb-2">
-                额外补充信息 <span className="text-muted-foreground font-normal">(可选)</span>
+                Additional Context <span className="text-muted-foreground font-normal">(optional)</span>
               </label>
               <textarea
-                placeholder="例如：希望内容偏向技术实践，或者包含具体案例..."
+                placeholder="e.g., Prefer content focused on technical practices, or include specific examples..."
                 value={additionalContext}
                 onChange={(e) => setAdditionalContext(e.target.value)}
                 rows={3}
@@ -626,33 +638,33 @@ export default function GeneratePage() {
                 onClick={() => setStep('input')}
                 className="flex-1 border border-border px-6 py-3 rounded-lg text-base font-medium hover:bg-accent transition-colors"
               >
-                返回
+                Back
               </button>
               <button
                 onClick={handleGenerate}
                 disabled={isGenerating}
                 className="flex-1 bg-foreground text-background px-6 py-3 rounded-lg text-base font-medium hover:bg-foreground/90 transition-colors disabled:opacity-50"
               >
-                开始生成
+                Start Generating
               </button>
             </div>
           </div>
         )}
 
-        {/* Step 3: 生成中 */}
+        {/* Step 3: Generating */}
         {step === 'generating' && (
           <div className="text-center py-12">
             <div className="max-w-md mx-auto mb-8">
               <div className="mb-8">
                 <div className="w-16 h-16 border-4 border-t-foreground/20 rounded-full animate-spin mx-auto"></div>
               </div>
-              <h2 className="text-2xl font-bold mb-2">AI 正在生成内容...</h2>
+              <h2 className="text-2xl font-bold mb-2">AI is generating content...</h2>
               <p className="text-muted-foreground mb-8">
-                预计需要1-2分钟，请稍候
+                Estimated time: 1-2 minutes
               </p>
               <div className="w-full bg-card rounded-lg border p-4">
                 <div className="flex justify-between mb-2 text-sm">
-                  <span className="text-muted-foreground">进度</span>
+                  <span className="text-muted-foreground">Progress</span>
                   <span className="font-medium">{progress}%</span>
                 </div>
                 <div className="w-full bg-muted rounded-full h-2">
@@ -700,18 +712,18 @@ export default function GeneratePage() {
           <div>
             <div className="flex items-center justify-between mb-8">
               <div>
-                <h1 className="text-3xl font-bold mb-2">生成完成！</h1>
+                <h1 className="text-3xl font-bold mb-2">Generation Complete!</h1>
                 <p className="text-muted-foreground">
-                  AI已为您生成专业内容
-                  {contentStructure && ` · 使用结构：${contentStructure}`}
-                  {targetAudience && ` · 目标受众：${targetAudience}`}
+                  AI has generated professional content
+                  {contentStructure && ` · Structure: ${contentStructure}`}
+                  {targetAudience && ` · Target Audience: ${targetAudience}`}
                 </p>
               </div>
               <button
                 onClick={resetForm}
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
-                ← 生成更多
+                ← Generate More
               </button>
             </div>
 
@@ -721,7 +733,7 @@ export default function GeneratePage() {
               {outputFormat === 'with_image' && imageUrl && (
                 <div className="rounded-lg border bg-card overflow-hidden">
                   <div className="p-4 border-b">
-                    <h2 className="text-lg font-semibold">生成的图片</h2>
+                    <h2 className="text-lg font-semibold">Generated Image</h2>
                   </div>
                   <div className="p-6">
                     <img
@@ -735,7 +747,7 @@ export default function GeneratePage() {
                       onClick={(e) => downloadImage(imageUrl, e)}
                       className="flex-1 border border-border px-4 py-2 rounded text-sm font-medium hover:bg-accent transition-colors"
                     >
-                      下载图片
+                      Download Image
                     </button>
                   </div>
                 </div>
@@ -745,16 +757,16 @@ export default function GeneratePage() {
               {generatedContent && (
                 <div className="rounded-lg border bg-card overflow-hidden">
                   <div className="p-4 border-b flex justify-between items-center">
-                    <h2 className="text-lg font-semibold">生成的内容</h2>
+                    <h2 className="text-lg font-semibold">Generated Content</h2>
                     <div className="flex gap-2">
                       <button
                         onClick={async () => {
                           await navigator.clipboard.writeText(generatedContent)
-                          alert('已复制到剪贴板！')
+                          alert('Copied to clipboard!')
                         }}
                         className="border border-border px-3 py-1.5 rounded text-sm font-medium hover:bg-accent transition-colors"
                       >
-                        复制
+                        Copy
                       </button>
                       <button
                         onClick={() => {
@@ -768,7 +780,7 @@ export default function GeneratePage() {
                         }}
                         className="border border-border px-3 py-1.5 rounded text-sm font-medium hover:bg-accent transition-colors"
                       >
-                        下载 Markdown
+                        Download Markdown
                       </button>
                     </div>
                   </div>
