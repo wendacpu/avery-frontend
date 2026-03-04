@@ -160,6 +160,138 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Pricing Section */}
+        <div id="pricing" className="mt-32">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl md:text-5xl font-bold mb-6">
+                {t("pricing.title")}
+              </h2>
+              <p className="text-xl text-muted-foreground">
+                {t("pricing.subtitle")}
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-8">
+              {/* SOLO Tier */}
+              <div className="rounded-lg border bg-card p-8 flex flex-col">
+                <h3 className="text-xl font-semibold mb-2">{t("pricing.tier.solo.name")}</h3>
+                <div className="mb-6">
+                  <span className="text-4xl font-bold">{t("pricing.tier.solo.price")}</span>
+                  <span className="text-muted-foreground">{t("pricing.tier.solo.period")}</span>
+                </div>
+                <ul className="space-y-4 mb-8 flex-1 text-sm">
+                  <li className="flex items-start space-x-3">
+                    <span className="text-green-500 mt-1">✓</span>
+                    <span>{t("pricing.tier.solo.feature1")}</span>
+                  </li>
+                  <li className="flex items-start space-x-3">
+                    <span className="text-green-500 mt-1">✓</span>
+                    <span>{t("pricing.tier.solo.feature2")}</span>
+                  </li>
+                  <li className="flex items-start space-x-3">
+                    <span className="text-green-500 mt-1">✓</span>
+                    <span>{t("pricing.tier.solo.feature3")}</span>
+                  </li>
+                  <li className="flex items-start space-x-3">
+                    <span className="text-green-500 mt-1">✓</span>
+                    <span>{t("pricing.tier.solo.feature4")}</span>
+                  </li>
+                  <li className="flex items-start space-x-3">
+                    <span className="text-green-500 mt-1">✓</span>
+                    <span>{t("pricing.tier.solo.feature5")}</span>
+                  </li>
+                </ul>
+                <Link
+                  href="/signup"
+                  className="w-full block text-center border border-border px-6 py-3 rounded text-base font-medium hover:bg-accent transition-colors"
+                >
+                  {t("pricing.tier.solo.button")}
+                </Link>
+              </div>
+
+              {/* PRO Tier */}
+              <div className="rounded-lg border-2 border-foreground bg-card p-8 flex flex-col relative">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                  <span className="bg-foreground text-background px-3 py-1 rounded text-xs font-medium">
+                    {t("pricing.tier.pro.badge")}
+                  </span>
+                </div>
+                <h3 className="text-xl font-semibold mb-2">{t("pricing.tier.pro.name")}</h3>
+                <div className="mb-6">
+                  <span className="text-4xl font-bold">{t("pricing.tier.pro.price")}</span>
+                  <span className="text-muted-foreground">{t("pricing.tier.pro.period")}</span>
+                </div>
+                <ul className="space-y-4 mb-8 flex-1 text-sm">
+                  <li className="flex items-start space-x-3">
+                    <span className="text-green-500 mt-1">✓</span>
+                    <span>{t("pricing.tier.pro.feature1")}</span>
+                  </li>
+                  <li className="flex items-start space-x-3">
+                    <span className="text-green-500 mt-1">✓</span>
+                    <span>{t("pricing.tier.pro.feature2")}</span>
+                  </li>
+                  <li className="flex items-start space-x-3">
+                    <span className="text-green-500 mt-1">✓</span>
+                    <span>{t("pricing.tier.pro.feature3")}</span>
+                  </li>
+                  <li className="flex items-start space-x-3">
+                    <span className="text-green-500 mt-1">✓</span>
+                    <span>{t("pricing.tier.pro.feature4")}</span>
+                  </li>
+                  <li className="flex items-start space-x-3">
+                    <span className="text-green-500 mt-1">✓</span>
+                    <span>{t("pricing.tier.pro.feature5")}</span>
+                  </li>
+                </ul>
+                <Link
+                  href="/signup"
+                  className="w-full block text-center bg-foreground text-background px-6 py-3 rounded text-base font-medium hover:bg-foreground/90 transition-colors"
+                >
+                  {t("pricing.tier.pro.button")}
+                </Link>
+              </div>
+
+              {/* ENTERPRISE Tier */}
+              <div className="rounded-lg border bg-card p-8 flex flex-col">
+                <h3 className="text-xl font-semibold mb-2">{t("pricing.tier.enterprise.name")}</h3>
+                <div className="mb-6">
+                  <span className="text-4xl font-bold">{t("pricing.tier.enterprise.price")}</span>
+                  <span className="text-muted-foreground">{t("pricing.tier.enterprise.period")}</span>
+                </div>
+                <ul className="space-y-4 mb-8 flex-1 text-sm">
+                  <li className="flex items-start space-x-3">
+                    <span className="text-green-500 mt-1">✓</span>
+                    <span>{t("pricing.tier.enterprise.feature1")}</span>
+                  </li>
+                  <li className="flex items-start space-x-3">
+                    <span className="text-green-500 mt-1">✓</span>
+                    <span>{t("pricing.tier.enterprise.feature2")}</span>
+                  </li>
+                  <li className="flex items-start space-x-3">
+                    <span className="text-green-500 mt-1">✓</span>
+                    <span>{t("pricing.tier.enterprise.feature3")}</span>
+                  </li>
+                  <li className="flex items-start space-x-3">
+                    <span className="text-green-500 mt-1">✓</span>
+                    <span>{t("pricing.tier.enterprise.feature4")}</span>
+                  </li>
+                  <li className="flex items-start space-x-3">
+                    <span className="text-green-500 mt-1">✓</span>
+                    <span>{t("pricing.tier.enterprise.feature5")}</span>
+                  </li>
+                </ul>
+                <Link
+                  href="/signup"
+                  className="w-full block text-center border border-border px-6 py-3 rounded text-base font-medium hover:bg-accent transition-colors"
+                >
+                  {t("pricing.tier.enterprise.button")}
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* CTA Section */}
         <div className="mt-32 max-w-5xl mx-auto">
           <div className="rounded-lg p-12 text-center bg-card border">
